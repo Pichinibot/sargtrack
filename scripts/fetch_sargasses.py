@@ -7,7 +7,7 @@ via une fonction protégée par jeton (aucune clé service_role nécessaire).
 Tourne quotidiennement via GitHub Actions.
 Source : NOAA/AOML + University of South Florida (données ouvertes, usage libre).
 """
-import os, sys, csv, io, datetime, urllib.request, urllib.error, json
+import os, sys, csv, io, math, datetime, urllib.request, urllib.error, json
 
 SUPABASE_URL = os.environ["SUPABASE_URL"].rstrip("/")
 ANON_KEY = os.environ["SUPABASE_ANON_KEY"]
@@ -52,16 +52,22 @@ def fetch_zone(lat0, lat1, lon0, lon1):
         if tstamp is None: tstamp = row[0][:10]
         try: vals.append(float(row[3]))
         except ValueError: pass
+    # Filtrer les NaN/inf (nuages, sun glint) : ne garder que les valeurs finies
+    vals = [v for v in vals if math.isfinite(v)]
     if not vals: return None, None, tstamp
     return sum(vals)/len(vals), max(vals), tstamp
 
+def _clean(x):
+    return None if (x is None or not math.isfinite(x)) else round(float(x), 6)
+
 def ingest(commune, moy, mx, niv, mesure):
+    moy, mx = _clean(moy), _clean(mx)
     url = f"{SUPABASE_URL}/rest/v1/rpc/ingest_satellite"
     body = json.dumps({
         "p_token": INGEST_TOKEN, "p_commune": commune,
         "p_afai_moyen": moy, "p_afai_max": mx,
         "p_niveau": niv, "p_mesure_le": mesure,
-    }).encode()
+    }, allow_nan=False).encode()
     req = urllib.request.Request(url, data=body, method="POST", headers={
         "apikey": ANON_KEY, "Authorization": f"Bearer {ANON_KEY}",
         "Content-Type": "application/json",
