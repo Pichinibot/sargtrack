@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import AccessGate from "./AccessGate";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -20,6 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
+        <AccessGate>
         <nav className="nav">
           <Link href="/" className="logo">
             <span className="dot">🌊</span>
@@ -34,6 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </div>
         </nav>
         {children}
+        </AccessGate>
       </body>
     </html>
   );
