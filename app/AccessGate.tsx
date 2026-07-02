@@ -70,7 +70,7 @@ export default function AccessGate({ children }: { children: React.ReactNode }) 
         </form>
         {err && <div className="gate-err">{err}</div>}
         <div style={{ marginTop: 18 }}>
-          <a href="/sargtrack/connexion/" style={{ fontSize: 13, fontWeight: 600, color: "var(--accent)" }}>
+          <a href="/sargtrack/connexion" style={{ fontSize: 13, fontWeight: 600, color: "var(--accent)" }}>
             Agent communal ? Connexion mairie →
           </a>
         </div>

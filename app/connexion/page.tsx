@@ -21,7 +21,7 @@ export default function Connexion() {
     const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
     setSending(false);
     if (error) setErr("Identifiants incorrects.");
-    else window.location.href = "/sargtrack/dashboard/";
+    else window.location.href = "/sargtrack/dashboard";
   }
 
   async function logout() {
