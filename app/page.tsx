@@ -30,6 +30,7 @@ export default function Home() {
   return (
     <main className="wrap">
       <section className="hero">
+        <div className="eyebrow">● Guadeloupe · Suivi en temps réel</div>
         <h1>
           La chaîne sargasses de votre commune, <em>enfin pilotée en temps réel</em>.
         </h1>
@@ -45,11 +46,14 @@ export default function Home() {
             Signaler un échouage
           </Link>
         </div>
+        <svg className="vague" viewBox="0 0 1200 46" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M0,30 C200,55 400,5 600,25 C800,45 1000,10 1200,30 L1200,46 L0,46 Z" fill="currentColor" />
+        </svg>
       </section>
 
       <div className="bandeau-risque" role="status">
         <div className="inner">
-          <span className="pastille" style={{ background: niveau.color }} />
+          <span className="pastille pulse" style={{ background: niveau.color }} />
           <strong>Situation actuelle : {niveau.label}</strong>
           <span className="hint">
             {actifs.length} zone{actifs.length > 1 ? "s" : ""} en attente de collecte
@@ -60,16 +64,19 @@ export default function Home() {
 
       <div className="grid grid-3">
         <div className="card">
+          <div className="icon">🚨</div>
           <h3>Signalements actifs</h3>
           <div className="big">{actifs.length}</div>
           <div className="sub">échouages non collectés</div>
         </div>
         <div className="card">
+          <div className="icon">🌿</div>
           <h3>Volume en attente</h3>
           <div className="big">{volumeEnAttente.toLocaleString("fr-FR")} m³</div>
           <div className="sub">estimation cumulée</div>
         </div>
         <div className="card">
+          <div className="icon">🏛️</div>
           <h3>Communes couvertes</h3>
           <div className="big">5</div>
           <div className="sub">Grande-Terre & Basse-Terre</div>

@@ -91,21 +91,25 @@ export default function Dashboard() {
 
       <div className="grid grid-4" style={{ marginTop: 18 }}>
         <div className="card">
+          <div className="icon">📍</div>
           <h3>Signalements</h3>
           <div className="big">{fSigs.length}</div>
           <div className="sub">{actifs} actifs</div>
         </div>
         <div className="card">
+          <div className="icon">🚛</div>
           <h3>Volume collecté</h3>
           <div className="big">{volCollecte.toLocaleString("fr-FR")} m³</div>
           <div className="sub">collectes enregistrées</div>
         </div>
         <div className="card">
+          <div className="icon">💶</div>
           <h3>Coût des collectes</h3>
           <div className="big">{coutTotal.toLocaleString("fr-FR")} €</div>
           <div className="sub">justifiable en subvention</div>
         </div>
         <div className="card">
+          <div className="icon">📊</div>
           <h3>Coût moyen / m³</h3>
           <div className="big">
             {volCollecte ? Math.round(coutTotal / volCollecte).toLocaleString("fr-FR") : "—"} €
