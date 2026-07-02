@@ -66,3 +66,25 @@ export async function getSessionProfile(): Promise<Profile | null> {
   const { data } = await supabase.from("profiles").select("*").eq("id", s.session.user.id).single();
   return (data as Profile) || null;
 }
+
+export type SatelliteIndex = {
+  commune: string;
+  afai_moyen: number | null;
+  afai_max: number | null;
+  niveau: "faible" | "modere" | "eleve" | "tres_eleve";
+  mesure_le: string;
+  source: string;
+};
+
+export const NIVEAU_SAT_LABEL: Record<string, string> = {
+  faible: "Faible",
+  modere: "Modéré",
+  eleve: "Élevé",
+  tres_eleve: "Très élevé",
+};
+export const NIVEAU_SAT_COLOR: Record<string, string> = {
+  faible: "#4f9d6f",
+  modere: "#d9a13d",
+  eleve: "#e0762e",
+  tres_eleve: "#c0392b",
+};

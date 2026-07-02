@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import SatelliteBanner from "./SatelliteBanner";
 import { supabase, Signalement, QUANTITE_COLOR, QUANTITE_LABEL } from "@/lib/supabase";
 
 export default function Home() {
@@ -61,6 +62,8 @@ export default function Home() {
           </span>
         </div>
       </div>
+
+      <SatelliteBanner />
 
       <div className="grid grid-3">
         <div className="card">
