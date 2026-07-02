@@ -8,12 +8,37 @@ import {
   QUANTITE_COLOR,
   QUANTITE_LABEL,
   STATUT_LABEL,
+  getSessionProfile,
+  Profile,
 } from "@/lib/supabase";
 
 export default function Dashboard() {
   const [sigs, setSigs] = useState<Signalement[]>([]);
   const [cols, setCols] = useState<Collecte[]>([]);
   const [commune, setCommune] = useState("Toutes");
+  const [profile, setProfile] = useState<Profile | null>(null);
+
+  useEffect(() => {
+    getSessionProfile().then(setProfile);
+  }, []);
+
+  async function changerStatut(sig: Signalement, statut: "en_collecte" | "collecte") {
+    if (statut === "collecte") {
+      const vol = prompt("Volume collecté (m³) ?", String(sig.volume_m3 || ""));
+      if (vol === null) return;
+      const cout = prompt("Coût de la collecte (€) ? (optionnel)");
+      await supabase.from("collectes").insert({
+        signalement_id: sig.id,
+        commune: sig.commune,
+        commune_id: (sig as any).commune_id,
+        operateur: profile?.nom || "Régie communale",
+        volume_m3: Number(vol) || 0,
+        cout_eur: cout ? Number(cout) : null,
+      });
+    }
+    await supabase.from("signalements").update({ statut }).eq("id", sig.id);
+    location.reload();
+  }
 
   useEffect(() => {
     supabase
@@ -72,7 +97,7 @@ export default function Dashboard() {
   return (
     <main className="wrap">
       <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
-        <h1 className="section-title" style={{ margin: 0, flex: 1 }}>
+        <h1 className="section-title" style={{ margin: 0, flex: 1, border: "none", padding: 0 }}>
           Dashboard communal
         </h1>
         <select
@@ -89,6 +114,17 @@ export default function Dashboard() {
         </button>
       </div>
 
+      {!profile && (
+        <div className="bandeau-risque" style={{ marginTop: 18, marginBottom: 0 }}>
+          <div className="inner">
+            <span className="pastille" style={{ background: "var(--or)" }} />
+            <strong>Mode démonstration</strong>
+            <span className="hint">
+              Données fictives. Les communes partenaires se connectent pour piloter leurs propres données, isolées et sécurisées.
+            </span>
+          </div>
+        </div>
+      )}
       <div className="grid grid-4" style={{ marginTop: 18 }}>
         <div className="card">
           <div className="icon">📍</div>
@@ -142,6 +178,7 @@ export default function Dashboard() {
               <th>Ampleur</th>
               <th>Volume</th>
               <th>Statut</th>
+              {profile?.role === "gestionnaire" && <th>Action</th>}
             </tr>
           </thead>
           <tbody>
@@ -157,6 +194,20 @@ export default function Dashboard() {
                 </td>
                 <td>{s.volume_m3 ? `${s.volume_m3} m³` : "—"}</td>
                 <td>{STATUT_LABEL[s.statut]}</td>
+                {profile?.role === "gestionnaire" && (
+                  <td>
+                    {s.statut === "signale" && !(s as any).is_demo && (
+                      <button className="btn btn-sarg" style={{ padding: "6px 12px", fontSize: 12 }} onClick={() => changerStatut(s, "en_collecte")}>
+                        Lancer la collecte
+                      </button>
+                    )}
+                    {s.statut === "en_collecte" && !(s as any).is_demo && (
+                      <button className="btn btn-primary" style={{ padding: "6px 12px", fontSize: 12 }} onClick={() => changerStatut(s, "collecte")}>
+                        Marquer collecté
+                      </button>
+                    )}
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>

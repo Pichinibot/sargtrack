@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
 export default function AccessGate({ children }: { children: React.ReactNode }) {
@@ -8,9 +9,13 @@ export default function AccessGate({ children }: { children: React.ReactNode }) 
   const [code, setCode] = useState("");
   const [err, setErr] = useState("");
   const [sending, setSending] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
-    setStatus(sessionStorage.getItem("sargtrack_access") === "1" ? "open" : "locked");
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session || sessionStorage.getItem("sargtrack_access") === "1") setStatus("open");
+      else setStatus("locked");
+    });
   }, []);
 
   async function submit(e: React.FormEvent) {
@@ -36,7 +41,7 @@ export default function AccessGate({ children }: { children: React.ReactNode }) 
     }
   }
 
-  if (status === "open") return <>{children}</>;
+  if (status === "open" || pathname.startsWith("/connexion")) return <>{children}</>;
   if (status === "checking") return null;
 
   return (
@@ -64,6 +69,11 @@ export default function AccessGate({ children }: { children: React.ReactNode }) 
           </button>
         </form>
         {err && <div className="gate-err">{err}</div>}
+        <div style={{ marginTop: 18 }}>
+          <a href="/sargtrack/connexion/" style={{ fontSize: 13, fontWeight: 600, color: "var(--accent)" }}>
+            Agent communal ? Connexion mairie →
+          </a>
+        </div>
         <div className="gate-hint">Connexions journalisées · SargTrack Guadeloupe</div>
       </div>
     </div>

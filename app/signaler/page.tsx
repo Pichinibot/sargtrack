@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { supabase, getSessionProfile, Profile } from "@/lib/supabase";
+import { useEffect } from "react";
 
 const COMMUNES = [
   "Saint-François",
@@ -24,6 +25,13 @@ export default function Signaler() {
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [photo, setPhoto] = useState<File | null>(null);
   const [state, setState] = useState<"idle" | "sending" | "ok" | "err">("idle");
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [communesDb, setCommunesDb] = useState<{ id: string; nom: string }[]>([]);
+
+  useEffect(() => {
+    getSessionProfile().then(setProfile);
+    supabase.from("communes").select("id,nom").then(({ data }) => setCommunesDb(data || []));
+  }, []);
   const [geoMsg, setGeoMsg] = useState("");
 
   function locate() {
@@ -59,8 +67,15 @@ export default function Signaler() {
         }
       }
       const [flat, flng] = FALLBACK[form.commune] || FALLBACK["Autre"];
+      const communeNom = profile
+        ? communesDb.find((c) => c.id === profile.commune_id)?.nom || form.commune
+        : form.commune;
       const { error } = await supabase.from("signalements").insert({
-        commune: form.commune,
+        is_demo: !profile,
+        commune_id: profile
+          ? profile.commune_id
+          : communesDb.find((c) => c.nom === form.commune)?.id || null,
+        commune: communeNom,
         plage: form.plage || null,
         lat: coords?.lat ?? flat,
         lng: coords?.lng ?? flng,
@@ -85,7 +100,9 @@ export default function Signaler() {
         Signaler un échouage
       </h1>
       <p className="hint" style={{ marginBottom: 20 }}>
-        Votre signalement apparaît immédiatement sur la carte et le dashboard communal.
+        {profile
+          ? "Connecté — votre signalement sera enregistré pour votre commune."
+          : "Mode démonstration — le signalement sera visible dans l'espace démo."}
       </p>
 
       {state === "ok" && (

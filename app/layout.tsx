@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import AccessGate from "./AccessGate";
+import AuthStatus from "./AuthStatus";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -29,6 +30,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </Link>
           <div className="links">
             <Link href="/carte">Carte</Link>
+            <AuthStatus />
             <Link href="/dashboard">Dashboard</Link>
             <Link href="/signaler" className="cta-nav">
               Signaler

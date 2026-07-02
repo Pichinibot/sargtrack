@@ -51,3 +51,18 @@ export const STATUT_LABEL: Record<string, string> = {
   en_collecte: "Collecte en cours",
   collecte: "Collecté",
 };
+
+export type Profile = {
+  id: string;
+  email: string;
+  nom: string | null;
+  role: "agent" | "gestionnaire" | "lecture";
+  commune_id: string;
+};
+
+export async function getSessionProfile(): Promise<Profile | null> {
+  const { data: s } = await supabase.auth.getSession();
+  if (!s.session) return null;
+  const { data } = await supabase.from("profiles").select("*").eq("id", s.session.user.id).single();
+  return (data as Profile) || null;
+}
