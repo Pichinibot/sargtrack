@@ -23,12 +23,14 @@ COMMUNES = {
     "Le Gosier":             (16.12, 16.22, -61.52, -61.35),
 }
 
-def niveau_from_afai(mx):
-    # Plage réelle du dataset AFAI : -0.002 à 0.004. Un AFAI positif marqué = sargasses.
-    if mx is None: return "faible"
-    if mx >= 0.0020: return "tres_eleve"
-    if mx >= 0.0010: return "eleve"
-    if mx >= 0.0003: return "modere"
+def niveau_from_afai(moy):
+    # On classe sur l'AFAI MOYEN de la fenêtre côtière (discriminant), pas le max
+    # qui sature à 0.004 sur le moindre pixel parasite. Seuils calibrés sur la
+    # plage observée de la moyenne (~ -0.001 à +0.001). À affiner avec le terrain.
+    if moy is None: return "faible"
+    if moy >= 0.0004:  return "tres_eleve"
+    if moy >= 0.0001:  return "eleve"
+    if moy >= -0.0001: return "modere"
     return "faible"
 
 def fetch_zone(lat0, lat1, lon0, lon1):
@@ -101,7 +103,7 @@ def main():
             continue
         # Étape 2 : ingestion Supabase
         try:
-            niv = niveau_from_afai(mx)
+            niv = niveau_from_afai(moy)
             res = ingest(commune, moy, mx, niv, (tstamp or today)[:10])
             if res == 'ok':
                 ok += 1
