@@ -2,8 +2,8 @@ name: Mise à jour indice sargasses
 
 on:
   schedule:
-    - cron: "0 10 * * *"   # tous les jours à 10h UTC (~6h Guadeloupe)
-  workflow_dispatch:        # bouton manuel dans l'onglet Actions
+    - cron: "0 10 * * *"
+  workflow_dispatch:
 
 jobs:
   fetch:
@@ -16,5 +16,6 @@ jobs:
       - name: Récupérer et enregistrer l'indice sargasses
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          INGEST_TOKEN: ${{ secrets.INGEST_TOKEN }}
         run: python scripts/fetch_sargasses.py
