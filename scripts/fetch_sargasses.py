@@ -7,7 +7,7 @@ via une fonction protégée par jeton (aucune clé service_role nécessaire).
 Tourne quotidiennement via GitHub Actions.
 Source : NOAA/AOML + University of South Florida (données ouvertes, usage libre).
 """
-import os, sys, csv, io, datetime, urllib.request, json
+import os, sys, csv, io, datetime, urllib.request, urllib.error, json
 
 SUPABASE_URL = os.environ["SUPABASE_URL"].rstrip("/")
 ANON_KEY = os.environ["SUPABASE_ANON_KEY"]
@@ -24,17 +24,27 @@ COMMUNES = {
 }
 
 def niveau_from_afai(mx):
+    # Plage réelle du dataset AFAI : -0.002 à 0.004. Un AFAI positif marqué = sargasses.
     if mx is None: return "faible"
-    if mx >= 0.0018: return "tres_eleve"
+    if mx >= 0.0020: return "tres_eleve"
     if mx >= 0.0010: return "eleve"
-    if mx >= 0.0004: return "modere"
+    if mx >= 0.0003: return "modere"
     return "faible"
 
 def fetch_zone(lat0, lat1, lon0, lon1):
-    q = f"{ERDDAP}?AFAI%5B(last)%5D%5B({lat0}):({lat1})%5D%5B({lon0}):({lon1})%5D"
-    req = urllib.request.Request(q, headers={"User-Agent": "SargTrack/1.0"})
-    with urllib.request.urlopen(req, timeout=90) as r:
-        text = r.read().decode("utf-8", "replace")
+    # Structure : AFAI[time][latitude][longitude]. Latitude croissante (0->38).
+    # [(last)] pour le dernier pas de temps ; strides à 1.
+    q = (f"{ERDDAP}?AFAI"
+         f"%5B(last)%5D"
+         f"%5B({lat0}):1:({lat1})%5D"
+         f"%5B({lon0}):1:({lon1})%5D")
+    req = urllib.request.Request(q, headers={"User-Agent": "SargTrack/1.0 (commune monitoring)"})
+    try:
+        with urllib.request.urlopen(req, timeout=90) as r:
+            text = r.read().decode("utf-8", "replace")
+    except urllib.error.HTTPError as e:
+        detail = e.read().decode("utf-8", "replace")[:200]
+        raise RuntimeError(f"HTTP {e.code} sur {q[:120]} :: {detail}")
     rows = list(csv.reader(io.StringIO(text)))
     vals, tstamp = [], None
     for row in rows[2:]:
