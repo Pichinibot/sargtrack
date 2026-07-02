@@ -59,8 +59,22 @@ def ingest(commune, moy, mx, niv, mesure):
     with urllib.request.urlopen(req, timeout=30) as r:
         return r.read().decode().strip().strip(chr(34))
 
+
+def plog(msg):
+    try:
+        url = f"{SUPABASE_URL}/rest/v1/rpc/pipe_log"
+        body = json.dumps({"p_token": INGEST_TOKEN, "p_msg": str(msg)[:500]}).encode()
+        req = urllib.request.Request(url, data=body, method="POST", headers={
+            "apikey": ANON_KEY, "Authorization": f"Bearer {ANON_KEY}",
+            "Content-Type": "application/json",
+        })
+        urllib.request.urlopen(req, timeout=20)
+    except Exception:
+        pass
+
 def main():
     today = datetime.date.today().isoformat()
+    plog(f"START pipeline {today}")
     ok = 0
     for commune, (la0, la1, lo0, lo1) in COMMUNES.items():
         try:
@@ -70,7 +84,9 @@ def main():
             print(f"{'OK ' if res=='ok' else 'KO '} {commune:24s} niveau={niv:10s} max={mx} -> {res}")
             if res == 'ok': ok += 1
         except Exception as e:
+            plog(f"ERR {commune}: {type(e).__name__}: {e}")
             print(f"ERR {commune:24s} {type(e).__name__}: {e}", file=sys.stderr)
+    plog(f"END : {ok}/{len(COMMUNES)} communes OK")
     print(f"\nTerminé : {ok}/{len(COMMUNES)} communes mises à jour.")
     sys.exit(0 if ok else 1)
 
