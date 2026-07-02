@@ -57,7 +57,7 @@ def ingest(commune, moy, mx, niv, mesure):
         "Content-Type": "application/json",
     })
     with urllib.request.urlopen(req, timeout=30) as r:
-        return r.read().decode().strip()
+        return r.read().decode().strip().strip(chr(34))
 
 def main():
     today = datetime.date.today().isoformat()
@@ -67,8 +67,8 @@ def main():
             moy, mx, tstamp = fetch_zone(la0, la1, lo0, lo1)
             niv = niveau_from_afai(mx)
             res = ingest(commune, moy, mx, niv, (tstamp or today)[:10])
-            print(f"{'OK ' if res=='\"ok\"' else 'KO '} {commune:24s} niveau={niv:10s} max={mx} -> {res}")
-            if res == '"ok"': ok += 1
+            print(f"{'OK ' if res=='ok' else 'KO '} {commune:24s} niveau={niv:10s} max={mx} -> {res}")
+            if res == 'ok': ok += 1
         except Exception as e:
             print(f"ERR {commune:24s} {type(e).__name__}: {e}", file=sys.stderr)
     print(f"\nTerminé : {ok}/{len(COMMUNES)} communes mises à jour.")
