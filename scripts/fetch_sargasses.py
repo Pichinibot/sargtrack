@@ -87,15 +87,22 @@ def main():
     plog(f"START pipeline {today}")
     ok = 0
     for commune, (la0, la1, lo0, lo1) in COMMUNES.items():
+        # Étape 1 : fetch NOAA
         try:
             moy, mx, tstamp = fetch_zone(la0, la1, lo0, lo1)
+        except Exception as e:
+            plog(f"FETCH-ERR {commune}: {repr(e)[:300]}")
+            continue
+        # Étape 2 : ingestion Supabase
+        try:
             niv = niveau_from_afai(mx)
             res = ingest(commune, moy, mx, niv, (tstamp or today)[:10])
-            print(f"{'OK ' if res=='ok' else 'KO '} {commune:24s} niveau={niv:10s} max={mx} -> {res}")
-            if res == 'ok': ok += 1
+            if res == 'ok':
+                ok += 1
+            else:
+                plog(f"INGEST-KO {commune}: reponse={res}")
         except Exception as e:
-            plog(f"ERR {commune}: {type(e).__name__}: {e}")
-            print(f"ERR {commune:24s} {type(e).__name__}: {e}", file=sys.stderr)
+            plog(f"INGEST-ERR {commune}: {repr(e)[:300]}")
     plog(f"END : {ok}/{len(COMMUNES)} communes OK")
     print(f"\nTerminé : {ok}/{len(COMMUNES)} communes mises à jour.")
     sys.exit(0 if ok else 1)
